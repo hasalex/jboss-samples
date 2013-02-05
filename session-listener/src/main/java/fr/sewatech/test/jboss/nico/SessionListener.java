@@ -1,6 +1,5 @@
 package fr.sewatech.test.jboss.nico;
 
-import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpSessionEvent;
@@ -8,7 +7,7 @@ import javax.servlet.http.HttpSessionListener;
 
 @WebListener
 public class SessionListener implements HttpSessionListener {
-    @Inject private MyBean userState;
+    @Inject private SessionBean userState;
 
     @Override
     public void sessionCreated(HttpSessionEvent event) {

@@ -4,7 +4,7 @@ import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 
 @SessionScoped
-public class MyBean implements Serializable {
+public class SessionBean implements Serializable {
     private String value;
 
     public String getValue() {
@@ -14,4 +14,9 @@ public class MyBean implements Serializable {
     public void setValue(String value) {
         this.value = value;
     }
+
+    public String asJson() {
+        return "{value:" + value +"}";
+    }
+
 }
