@@ -1,4 +1,4 @@
-package fr.sewatech.test.jboss.nico;
+package fr.sewatech.examples.jboss;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;

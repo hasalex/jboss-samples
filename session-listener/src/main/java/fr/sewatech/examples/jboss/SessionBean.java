@@ -1,4 +1,4 @@
-package fr.sewatech.test.jboss.nico;
+package fr.sewatech.examples.jboss;
 
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;

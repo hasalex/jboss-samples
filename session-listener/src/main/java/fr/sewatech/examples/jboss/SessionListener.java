@@ -1,4 +1,4 @@
-package fr.sewatech.test.jboss.nico;
+package fr.sewatech.examples.jboss;
 
 import javax.inject.Inject;
 import javax.servlet.annotation.WebListener;
