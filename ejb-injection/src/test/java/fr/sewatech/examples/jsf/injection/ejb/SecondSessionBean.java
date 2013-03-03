@@ -3,13 +3,13 @@ package fr.sewatech.examples.jsf.injection.ejb;
 import javax.ejb.Stateless;
 
 @Stateless
-public class SessionBean implements SessionBeanLocal {
+public class SecondSessionBean implements SecondSessionBeanLocal {
 
-    public static final String VALUE = "VALUE";
+    public static final String SECOND = "SECOND";
 
     @Override
     public String getValue() {
-        return VALUE;
+        return SECOND;
     }
 
 }

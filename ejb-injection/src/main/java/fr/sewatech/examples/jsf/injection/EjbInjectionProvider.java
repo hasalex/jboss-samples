@@ -18,7 +18,6 @@ public class EjbInjectionProvider implements InjectionProvider {
 
     public EjbInjectionProvider() throws InjectionProviderException {
         try {
-            System.out.println("Loading EjbInjectionProvider");
             jndi = new JndiByClass();
         } catch (IOException e) {
             throw new InjectionProviderException(e);
@@ -84,21 +83,11 @@ public class EjbInjectionProvider implements InjectionProvider {
     private static class ManagementOperations {
 
         private final ModelControllerClient controllerClient;
-        private static ModelNode readSubDeploymentsOperation;
-        private static ModelNode readSubSystemOperation;
 
         public ManagementOperations() throws IOException {
             String portAsString = System.getProperty("jboss.management.native.port");
             int port = portAsString == null ? 9999 : Integer.parseInt(portAsString);
             controllerClient = ModelControllerClient.Factory.create("localhost", port);
-
-            readSubDeploymentsOperation = new ModelNode();
-            readSubDeploymentsOperation.get("operation").set("read-children-resources");
-            readSubDeploymentsOperation.get("child-type").set("subdeployment");
-
-            readSubSystemOperation = new ModelNode();
-            readSubSystemOperation.get("operation").set("read-children-resources");
-            readSubSystemOperation.get("child-type").set("subsystem");
         }
 
         public List<String> getEjb3SubDeployments(String earName) throws IOException {
@@ -115,11 +104,19 @@ public class EjbInjectionProvider implements InjectionProvider {
         }
 
         private List<Property> readSubDeployments(String earName) throws IOException {
-            ModelNode address = readSubDeploymentsOperation.get("address");
+            ModelNode operation = buildReadSubDeploymentsOperation();
+            ModelNode address = operation.get("address");
             address.add("deployment", earName);
 
-            ModelNode returnVal = controllerClient.execute(readSubDeploymentsOperation);
+            ModelNode returnVal = controllerClient.execute(operation);
             return returnVal.get("result").asPropertyList();
+        }
+
+        private ModelNode buildReadSubDeploymentsOperation() {
+            ModelNode operation = new ModelNode();
+            operation.get("operation").set("read-children-resources");
+            operation.get("child-type").set("subdeployment");
+            return operation;
         }
 
     }

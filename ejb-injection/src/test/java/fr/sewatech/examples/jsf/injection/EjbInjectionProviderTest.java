@@ -1,7 +1,9 @@
 package fr.sewatech.examples.jsf.injection;
 
-import fr.sewatech.examples.jsf.injection.ejb.SessionBean;
-import fr.sewatech.examples.jsf.injection.ejb.SessionBeanLocal;
+import fr.sewatech.examples.jsf.injection.ejb.FirstSessionBean;
+import fr.sewatech.examples.jsf.injection.ejb.FirstSessionBeanLocal;
+import fr.sewatech.examples.jsf.injection.ejb.SecondSessionBean;
+import fr.sewatech.examples.jsf.injection.ejb.SecondSessionBeanLocal;
 import fr.sewatech.examples.jsf.injection.web.BackingBean;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -25,20 +27,23 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 
-import static fr.sewatech.examples.jsf.injection.ejb.SessionBean.VALUE;
+import static fr.sewatech.examples.jsf.injection.ejb.FirstSessionBean.FIRST;
+import static fr.sewatech.examples.jsf.injection.ejb.SecondSessionBean.SECOND;
 import static fr.sewatech.examples.jsf.injection.web.BackingBean.FAIL;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(Arquillian.class)
 public class EjbInjectionProviderTest {
 
-    @Deployment(testable = false, name = "withInjectionProvider")
-    public static Archive deployWithInjectionProvider() {
+    @Deployment(testable = false, name = "withInjectionProvider1")
+    public static Archive deployOneEjbJarWithInjectionProvider() {
         WebArchive webArchive = buildWebArchive()
                 .addClasses(EjbInjectionProvider.class)
                 .addAsWebInfResource("web/web-with-injectionProvider.xml", "web.xml");
+        JavaArchive ejbArchive = buildEjbArchive()
+                .addClasses(SecondSessionBean.class, SecondSessionBeanLocal.class);
         return ShrinkWrap.create(EnterpriseArchive.class)
-                .addAsModules(webArchive, buildEjbArchive())
+                .addAsModules(webArchive, ejbArchive)
                 .addAsManifestResource("jboss-deployment-structure.xml");
     }
 
@@ -46,8 +51,22 @@ public class EjbInjectionProviderTest {
     public static Archive deployWithoutInjectionProvider() {
         WebArchive webArchive = buildWebArchive()
                 .addAsWebInfResource("web/web-without-injectionProvider.xml", "web.xml");
+        JavaArchive ejb1Archive = buildEjbArchive()
+                .addClasses(SecondSessionBean.class, SecondSessionBeanLocal.class);
         return ShrinkWrap.create(EnterpriseArchive.class)
-                .addAsModules(webArchive, buildEjbArchive())
+                .addAsModules(webArchive, ejb1Archive)
+                .addAsManifestResource("jboss-deployment-structure.xml");
+    }
+
+    @Deployment(testable = false, name = "withInjectionProvider2")
+    public static Archive deployTwoEjbJarsWithInjectionProvider() {
+        WebArchive webArchive = buildWebArchive()
+                .addClasses(EjbInjectionProvider.class)
+                .addAsWebInfResource("web/web-with-injectionProvider.xml", "web.xml");
+        JavaArchive ejb2Archive = ShrinkWrap.create(JavaArchive.class)
+                .addClasses(SecondSessionBean.class, SecondSessionBeanLocal.class);
+        return ShrinkWrap.create(EnterpriseArchive.class)
+                .addAsModules(webArchive, buildEjbArchive(), ejb2Archive)
                 .addAsManifestResource("jboss-deployment-structure.xml");
     }
 
@@ -60,14 +79,14 @@ public class EjbInjectionProviderTest {
 
     private static JavaArchive buildEjbArchive() {
         return ShrinkWrap.create(JavaArchive.class)
-                .addClasses(SessionBean.class, SessionBeanLocal.class);
+                .addClasses(FirstSessionBean.class, FirstSessionBeanLocal.class);
     }
 
-    @Test @OperateOnDeployment("withInjectionProvider") @RunAsClient
+    @Test @OperateOnDeployment("withInjectionProvider1") @RunAsClient
     public void should_injection_work_with_injectionProvider(@ArquillianResource URL baseURL) throws Exception {
         HttpClient httpClient = new DefaultHttpClient();
         String result = sendGetRequestAndReturnValue(baseURL.toString() + "bean.faces", httpClient);
-        assertEquals(VALUE, result);
+        assertEquals(FIRST + "-" + SECOND, result);
     }
 
     @Test @OperateOnDeployment("withoutInjectionProvider") @RunAsClient
@@ -75,6 +94,13 @@ public class EjbInjectionProviderTest {
         HttpClient httpClient = new DefaultHttpClient();
         String result = sendGetRequestAndReturnValue(baseURL.toString() + "bean.faces", httpClient);
         assertEquals(FAIL, result);
+    }
+
+    @Test @OperateOnDeployment("withInjectionProvider2") @RunAsClient
+    public void should_injection_work_with_injectionProvider_and_two_ejbJars(@ArquillianResource URL baseURL) throws Exception {
+        HttpClient httpClient = new DefaultHttpClient();
+        String result = sendGetRequestAndReturnValue(baseURL.toString() + "bean.faces", httpClient);
+        assertEquals(FIRST + "-" + SECOND, result);
     }
 
     private String sendGetRequestAndReturnValue(String url, HttpClient httpClient) throws IOException {
